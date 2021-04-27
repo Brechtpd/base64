@@ -30,7 +30,7 @@ contract Base64 {
         uint endPtr = dataPtr + data.length;
         
         // result ptr, jump over length
-        uint resultPtr = 32;
+        uint resultPtr;
         assembly {
             resultPtr := add(result, 32)
         }
@@ -54,16 +54,14 @@ contract Base64 {
             }
         }
         
-        // padding
-        uint r = data.length % 3;
-        if (r != 0) {
-            r = (r == 1) ? 2 : 1;
-        }
-        for (uint i = 0; i < r; i++) {
-            result[encodedLen - 1 - i] = '=';
+        // padding with '=''
+        assembly {
+            switch mod(mload(data), 3)
+            case 1 { mstore(sub(resultPtr, 2), shl(240, 0x3d3d)) }
+            case 2 { mstore(sub(resultPtr, 1), shl(248, 0x3d)) }
         }
         
-        // Set the actual output length
+        // set the actual output length
         assembly {
             mstore(result, encodedLen)
         }
