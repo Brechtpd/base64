@@ -3,20 +3,24 @@
 /// @title Base64
 /// @author Brecht Devos - <brecht@loopring.org>
 /// @notice Provides a function for encoding some bytes in base64
-contract Base64 {
-    bytes internal constant TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+library Base64 {
+    string internal constant TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
-    function encode(bytes memory data) public pure returns (string memory) {
+    function encode(bytes memory data) internal pure returns (string memory) {
         if (data.length == 0) return '';
 
         // multiply by 4/3 rounded up
         uint256 encodedLen = 4 * ((data.length + 2) / 3);
 
         // add some extra buffer at the end required for the writing
-        bytes memory result = new bytes(encodedLen + 32);
+        string memory result = new string(encodedLen + 32);
+        // set the actual output length
+        assembly {
+            mstore(result, encodedLen)
+        }
         
         // prepare the lookup table
-        bytes memory table = TABLE;
+        string memory table = TABLE;
         uint tablePtr;
         assembly {
             tablePtr := add(table, 1)
@@ -54,18 +58,13 @@ contract Base64 {
             }
         }
         
-        // padding with '=''
+        // padding with '='
         assembly {
             switch mod(mload(data), 3)
             case 1 { mstore(sub(resultPtr, 2), shl(240, 0x3d3d)) }
             case 2 { mstore(sub(resultPtr, 1), shl(248, 0x3d)) }
         }
         
-        // set the actual output length
-        assembly {
-            mstore(result, encodedLen)
-        }
-
-        return string(result);
+        return result;
     }
 }
