@@ -1,4 +1,7 @@
+// SPDX-License-Identifier: MIT
+
 /// @title Base64
+/// @author Brecht Devos - <brecht@loopring.org>
 /// @notice Provides a function for encoding some bytes in base64
 contract Base64 {
     bytes internal constant TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
