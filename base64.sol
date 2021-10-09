@@ -41,20 +41,19 @@ library Base64 {
             // run over the input, 3 bytes at a time
             for {} lt(dataPtr, endPtr) {}
             {
-               dataPtr := add(dataPtr, 3)
+                // read 3 bytes
+                dataPtr := add(dataPtr, 3)
+                let input := mload(dataPtr)
 
-               // read 3 bytes
-               let input := mload(dataPtr)
-
-               // write 4 characters
-               mstore8(resultPtr, mload(add(tablePtr, and(shr(18, input), 0x3F))))
-               resultPtr := add(resultPtr, 1)
-               mstore8(resultPtr, mload(add(tablePtr, and(shr(12, input), 0x3F))))
-               resultPtr := add(resultPtr, 1)
-               mstore8(resultPtr, mload(add(tablePtr, and(shr( 6, input), 0x3F))))
-               resultPtr := add(resultPtr, 1)
-               mstore8(resultPtr, mload(add(tablePtr, and(        input,  0x3F))))
-               resultPtr := add(resultPtr, 1)
+                // write 4 characters
+                mstore8(resultPtr, mload(add(tablePtr, and(shr(18, input), 0x3F))))
+                resultPtr := add(resultPtr, 1)
+                mstore8(resultPtr, mload(add(tablePtr, and(shr(12, input), 0x3F))))
+                resultPtr := add(resultPtr, 1)
+                mstore8(resultPtr, mload(add(tablePtr, and(shr( 6, input), 0x3F))))
+                resultPtr := add(resultPtr, 1)
+                mstore8(resultPtr, mload(add(tablePtr, and(        input,  0x3F))))
+                resultPtr := add(resultPtr, 1)
             }
 
             // padding with '='
@@ -107,21 +106,22 @@ library Base64 {
             // run over the input, 4 characters at a time
             for {} lt(dataPtr, endPtr) {}
             {
-               dataPtr := add(dataPtr, 4)
-
                // read 4 characters
+               dataPtr := add(dataPtr, 4)
                let input := mload(dataPtr)
 
-               // Combine the 4 characters into 3 bytes
-               let partA := and(mload(add(tablePtr, and(shr(24, input), 0xFF))), 0xFF)
-               let partB := and(mload(add(tablePtr, and(shr(16, input), 0xFF))), 0xFF)
-               let partC := and(mload(add(tablePtr, and(shr( 8, input), 0xFF))), 0xFF)
-               let partD := and(mload(add(tablePtr, and(shr( 0, input), 0xFF))), 0xFF)
-               let parts := add(add(shl(18, partA), shl(12, partB)), add(shl(6, partC), partD))
-
                // write 3 bytes
-               mstore(resultPtr, shl(232, parts))
-               resultPtr := add(resultPtr, 3)
+               let output := add(
+                   add(
+                       shl(18, and(mload(add(tablePtr, and(shr(24, input), 0xFF))), 0xFF)),
+                       shl(12, and(mload(add(tablePtr, and(shr(16, input), 0xFF))), 0xFF))),
+                   add(
+                       shl( 6, and(mload(add(tablePtr, and(shr( 8, input), 0xFF))), 0xFF)),
+                               and(mload(add(tablePtr, and(        input , 0xFF))), 0xFF)
+                    )
+                )
+                mstore(resultPtr, shl(232, output))
+                resultPtr := add(resultPtr, 3)
             }
         }
 
